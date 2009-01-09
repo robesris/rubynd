@@ -4,6 +4,8 @@ require 'piece'
 
 class Game
 	NUM_PLAYERS = 2
+	
+	attr_accessor :pieces, :board, :state
 
 	def initialize
 		@player0 = Player.new(0)
@@ -17,7 +19,7 @@ class Game
 	end
 
 	def win(player)
-		@state = player == @player0 ? :win_player0 : win_player1
+		@state = player == @player0 ? :win_player0 : :win_player1
 	end
 
 	def player(num)
@@ -36,14 +38,6 @@ class Game
 
 	def player1
 		player(1)
-	end
-
-	def board
-		@board
-	end
-
-	def state
-		@state
 	end
 
 	def state=(newstate)

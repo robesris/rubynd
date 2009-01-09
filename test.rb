@@ -2,8 +2,8 @@ require 'game.rb'
 
 class Frontend
 
-	def draw_board
-		@g.board.grid.each do |s|
+	def self.draw_board
+		@@g.board.grid.each do |s|
 			print "\n\n" if s.col == 1
 			if s.piece != nil
 				print s.piece.player.num == 0 ? "0 " : "1 "
@@ -14,12 +14,12 @@ class Frontend
 		print "\n"
 	end
 
-	def tryit
-		@g = Game.new
-		@b = @g.board
+	def self.tryit
+		@@g = Game.new
+		@@b = @@g.board
 		draw_board
-		@p = Black_Stone.new(@g.player0, b[4,3])
-		@g.pieces += @p
+		@@p = Black_Stone.new(@@g.player0, b[4,3])
+		@@g.pieces += [@@p]
 		draw_board
 		puts p.move(b[4,4])
 		draw_board
@@ -27,20 +27,20 @@ class Frontend
 		draw_board
 		puts p.move(b[4,5])
 		draw_board
-		puts @g.player0.pool
-		puts @g.player1.pool
+		puts @@g.player0.pool
+		puts @@g.player1.pool
 	end
 
-	def g
-		@g
+	def self.g
+		@@g
 	end
 
-	def b
-		@b
+	def self.b
+		@@b
 	end
 
-	def p
-		@p
+	def self.p
+		@@p
 	end
 end
 
