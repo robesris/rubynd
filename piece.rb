@@ -63,14 +63,14 @@ class Piece
 												0, 1, 0, 1, 0,
 												0, 0, 0, 0, 0 ]
 
-	def initialize(player, space, game, owner = player)
+	def initialize(player, space, owner = player)
 		@owner = owner
 		@player = player
 		player.pieces << self
 		@space = space
 		space.piece = self
 		@attribs = {}
-		@game = game
+		#@game = game
 	end
 
 	def pay_for_flip

@@ -11,6 +11,7 @@ class Game
 		@player0.opponent = @player1
 		@player1.opponent = @player0
 		@board = Board.new(NUM_PLAYERS)
+		@pieces = []
 		@state = :setup
 		@active_player = @player1
 	end

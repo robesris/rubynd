@@ -19,6 +19,7 @@ class Frontend
 		@b = @g.board
 		draw_board
 		@p = Black_Stone.new(@g.player0, b[4,3])
+		@g.pieces += @p
 		draw_board
 		puts p.move(b[4,4])
 		draw_board

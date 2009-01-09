@@ -10,12 +10,12 @@ class Player
 		@keep = []
 	end
 
-	def @pool_add(amt)
+	def pool_add(amt)
 		@pool += amt
 		@pool = MAX_POOL if @pool > MAX_POOL
 	end
 
-	def @pool_sub(amt)
+	def pool_sub(amt)
 		@pool -=amt
 		@pool = 0 if @pool < 0
 	end
