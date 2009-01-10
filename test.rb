@@ -27,8 +27,8 @@ class Frontend
 		draw_board
 		puts p.move(b[4,5])
 		draw_board
-		puts @@g.player0.pool
-		puts @@g.player1.pool
+		puts "Player 1 pool: " + @@g.player0.pool.to_s
+		puts "Player 2 pool: " + @@g.player1.pool.to_s
 	end
 
 	def self.g

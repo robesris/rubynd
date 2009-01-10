@@ -16,14 +16,24 @@ class Tro < Piece
 		@movement_grid = @@SIDE1
 	end
 
+  def en_drop_behavior(trigger) #Add 10 to controlling player's pool when killed by opponent
+    if trigger == :die && game.active_player == @player.opponent
+      @player.pool_add(10)
+    end
+  end
+
 	def flip
 		if super
 			@movement_grid = @@SIDE2
+			@myeffect = Effect.new(:name => @flipname, :source => self, :behavior => en_drop_behavior.method)
+			@effects << @myeffect
 		end
 	end
+	
+	def flipback
+	  if super
+	    @effects -= @myeffect
+	  end
+	end 
 
-	def die
-		super
-		@player.pool_add(10) if game.active_player == @player.opponent
-	end
 end

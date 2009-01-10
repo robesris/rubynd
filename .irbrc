@@ -1,0 +1,2 @@
+require 'test'
+@f = Frontend

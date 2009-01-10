@@ -1,4 +1,8 @@
 class Piece
+  
+  attr_accessor :effects, :myeffect, :space, :attribs
+  attr_reader :player, :name, :num, :game, :movement_grid, :cost
+  
 	MOVEMENT_GRID_WIDTH = 5
 	MOVEMENT_GRID_HEIGHT = 5
 	MAX_COL_MOVE = (MOVEMENT_GRID_WIDTH - 1) / 2 # => 2
@@ -8,6 +12,114 @@ class Piece
 	@@SIDE1 = nil
 	@@SIDE2 = nil
 
+	def initialize(player, space, owner = player)
+		@owner = owner
+		@player = player
+		player.pieces << self
+		@space = space
+		space.piece = self
+		@effects = {}
+		@attribs = {}
+		@game = game
+	end
+
+  def run_effects(trigger)
+    effects.each do |e|
+      e.behavior.call(trigger)
+    end
+  end
+
+	def pay_for_flip
+		if attribs[:flipped] || attribs[:unflippable] || @player.pool < @cost
+			nil
+		elsif run_effects()
+			@player.pool -= @cost
+		end
+	end
+
+	def flip
+		if pay_for_flip
+			@movement_grid = @@SIDE2
+			attribs[:flipped] = true
+		end
+	end
+
+	def flipback
+		if attribs[:flipped] && !attribs[:unflippable]
+			@movement_grid = @@SIDE1
+			attribs[:flipped] = false
+		end
+	end
+
+	def die
+		@space.piece = nil
+		@player.graveyard << self
+	end
+
+	#def space=(new_space)
+	#	@space = new_space
+	#end
+
+=begin
+	def attribs
+		@attribs
+	end
+
+	def attribs=(attrib)
+		@attribs = attrib
+	end
+=end
+
+	# = move(move_to)
+	#
+	# Handles piece movement.
+	# move_to: a Space object representing the space the piece is attempting to move to
+	#
+	def move(move_to)
+		#This is going to be the most complex method in the game
+
+		#Flip the movement grid around for player1 (i.e. second player)
+		mg = @player.num == 0 ? @movement_grid : @movement_grid.reverse
+
+
+
+		#calculate the number of columns and rows the space is from current position
+		col_move = move_to.col - @space.col # Left: <0  Right: >0
+		row_move = move_to.row - @space.row # Up: >0  Down: <0
+
+    #check if the piece's movement grid allows it to move DIRECTLY (i.e. 'jump') to the specified space 
+		if col_move.abs <= MAX_COL_MOVE &&
+			 row_move.abs <= MAX_ROW_MOVE &&
+			 mg[MOVEMENT_GRID_CENTER - (MOVEMENT_GRID_WIDTH * row_move) + col_move] != 0
+			####### HANDLE BASIC MOVEMENT (i.e. movement to yellow squares) ############
+
+			yield move_to if block_given?	 # piece-specific stuff that happens during movement
+
+			# default movement
+			if move_to.piece == nil
+				simple_move(move_to)
+			elsif move_to.piece.player = @player
+				nil
+			else
+				#TRY TO CAPTURE AN OPPONENT'S PIECE
+				true
+			end
+
+		else #if the piece can't jump to the specified space, see if it can 'slide' there
+			#HANDLE ADVANCED MOVEMENT
+			nil
+		end
+
+	end
+
+	private
+
+	def simple_move(move_to)
+		@space.piece = nil
+		@space = move_to
+		@space.piece = self
+	end
+	
 	#Some common movement grids
 	KING							= [ 0, 0, 0, 0, 0,
 												0, 1, 1, 1, 0,
@@ -62,132 +174,6 @@ class Piece
 												0, 0, 0, 0, 0,
 												0, 1, 0, 1, 0,
 												0, 0, 0, 0, 0 ]
-
-	def initialize(player, space, owner = player)
-		@owner = owner
-		@player = player
-		player.pieces << self
-		@space = space
-		space.piece = self
-		@attribs = {}
-		#@game = game
-	end
-
-	def pay_for_flip
-		if attribs[:flipped] || attribs[:unflippable] || @player.pool < @cost
-			nil
-		else
-			@player.pool -= @cost
-		end
-	end
-
-	def flip
-		if pay_for_flip
-			@movement_grid = @@SIDE2
-			attribs[:flipped] = true
-		end
-	end
-
-	def flipback
-		if attribs[:flipped] && !attribs[:unflippable]
-			@movement_grid = @@SIDE1
-			attribs[:flipped] = false
-		end
-	end
-
-	def die
-		@space.piece = nil
-		@player.graveyard << self
-	end
-
-	def player
-		@player
-	end
-
-	def name
-		@name
-	end
-
-	def num
-		@num
-	end
-
-	def space
-		@space
-	end
-
-	def game
-		@game
-	end
-
-	def space=(new_space)
-		@space = new_space
-	end
-
-	def movement_grid
-		@movement_grid
-	end
-
-	def cost
-		@cost
-	end
-
-	def attribs
-		@attribs
-	end
-
-	def attribs=(attrib)
-		@attribs = attrib
-	end
-
-	# = move(move_to)
-	#
-	# Handles piece movement.
-	# move_to: a Space object representing the space the piece is attempting to move to
-	#
-	def move(move_to)
-		#This is going to be the most complex method in the game
-
-		#Flip the movement grid around for player1 (i.e. second player)
-		mg = @player.num == 0 ? @movement_grid : @movement_grid.reverse
-
-
-
-		#calculate the number of columns and rows the space is from current position
-		col_move = move_to.col - @space.col # Left: <0  Right: >0
-		row_move = move_to.row - @space.row # Up: >0  Down: <0
-
-		if col_move.abs <= MAX_COL_MOVE &&
-			 row_move.abs <= MAX_ROW_MOVE &&
-			 mg[MOVEMENT_GRID_CENTER - (MOVEMENT_GRID_WIDTH * row_move) + col_move] != 0
-			####### HANDLE BASIC MOVEMENT (i.e. movement to yellow squares) ############
-
-			yield move_to if block_given?	 # piece-specific stuff that happens during movement
-
-			# default movement
-			if move_to.piece == nil
-				simple_move(move_to)
-			elsif move_to.piece.player = @player
-				nil
-			else
-				#TRY TO CAPTURE AN OPPONENT'S PIECE
-				true
-			end
-
-		else
-			#HANDLE ADVANCED MOVEMENT
-			nil
-		end
-
-	end
-
-	private
-
-	def simple_move(move_to)
-		@space.piece = nil
-		@space = move_to
-		@space.piece = self
-	end
 end
 
 # -------------
