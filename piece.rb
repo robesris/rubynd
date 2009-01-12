@@ -1,5 +1,7 @@
+require 'effect'
+
 class Piece
-  
+	 
   attr_accessor :effects, :myeffect, :space, :attribs
   attr_reader :player, :name, :num, :game, :movement_grid, :cost
   
@@ -32,7 +34,7 @@ class Piece
 	def pay_for_flip
 		if attribs[:flipped] || attribs[:unflippable] || @player.pool < @cost
 			nil
-		elsif run_effects()
+		elsif run_effects(:try_flip)
 			@player.pool -= @cost
 		end
 	end
@@ -54,6 +56,7 @@ class Piece
 	def die
 		@space.piece = nil
 		@player.graveyard << self
+		run_effects(:die)
 	end
 
 	#def space=(new_space)
@@ -334,3 +337,6 @@ class Nav_Per < Nav
 	end
 
 end
+
+require 'tro'
+require 'ham'

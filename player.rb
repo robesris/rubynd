@@ -2,6 +2,8 @@ class Player
 	KEEP_SIZE = 7
 	MAX_POOL = 60
 
+  attr_accessor :pieces
+
 	def initialize(num)
 		@num = num
 		@graveyard = []
@@ -30,10 +32,6 @@ class Player
 
 	def pool=(num)
 		@pool = num
-	end
-
-	def pieces
-		@pieces
 	end
 
 	def keep
