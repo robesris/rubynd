@@ -39,9 +39,4 @@ class Game
 	def player1
 		player(1)
 	end
-
-	def state=(newstate)
-		@state = newstate
-	end
-
 end
