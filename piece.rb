@@ -84,7 +84,8 @@ class Piece
 		#Flip the movement grid around for player1 (i.e. second player)
 		mg = @player.num == 0 ? @movement_grid : @movement_grid.reverse
 
-
+    # First, check if any effects prevent the piece from moving there
+    return false unless move_to.can_be_entered_by?(self)
 
 		#calculate the number of columns and rows the space is from current position
 		col_move = move_to.col - @space.col # Left: <0  Right: >0
@@ -110,6 +111,8 @@ class Piece
 
 		else #if the piece can't jump to the specified space, see if it can 'slide' there
 			#HANDLE ADVANCED MOVEMENT
+			
+			# The piece's grid doesn't allow it to move there
 			nil
 		end
 

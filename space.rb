@@ -1,9 +1,11 @@
 class Space
-
+  attr_accessor :effects
+  
 	def initialize(col, row, attribs = {})
 		@col = col
 		@row = row
 		@attribs = attribs
+		@effects = []
 		@piece = nil
 	end
 
@@ -27,4 +29,11 @@ class Space
 		@row
 	end
 
+  def can_be_entered_by?(piece)
+    # Test effects
+    self.effects.each do |effect|
+      return false unless effect.allow?(:piece => piece, :action => :move)
+    end
+    true
+  end  
 end

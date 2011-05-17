@@ -6,4 +6,9 @@ class Effect
     @source = options[:source]
     @behavior = options[:behavior]
   end
+  
+  def allow?(params)
+    # Pass the params on to the lambda representing the behavior
+    self.behavior.call(params)
+  end
 end
