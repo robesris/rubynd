@@ -1,5 +1,7 @@
 class Effect
-  attr_accessor :name, :source, :behavior
+  attr_accessor :source,      # The object that created and 'owns' this Effect
+                :name         # The name of the effect
+                :behavior     # The name of the method invoked when this Effect is triggered
   
   def initialize(options)
     @name = options[:name]
@@ -7,8 +9,8 @@ class Effect
     @behavior = options[:behavior]
   end
   
-  def allow?(params)
-    # Pass the params on to the lambda representing the behavior
-    self.behavior.call(params)
-  end
+  def respond_to_action(action)
+    # Pass the params on to the source's method identified by :behavior
+    self.source.send(:behavior, action)
+  end 
 end

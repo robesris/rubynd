@@ -18,7 +18,7 @@ class Frontend
 		@@g = Game.new
 		@@b = @@g.board
 		draw_board
-		@@p = Black_Stone.new(@@g.player0, b[4,3])
+		@@p = BlackStone.new(@@g.player0, b[4,3])
 		@@g.pieces += [@@p]
 		draw_board
 		puts p.move(b[4,4])

@@ -25,10 +25,12 @@ class Piece
 		@game = game
 	end
 
-  def run_effects(trigger)
+  def run_effects(action)
+    results = []
     effects.each do |e|
-      e.behavior.call(trigger)
+      results << e.respond_to_action(action)
     end
+    results
   end
 
 	def pay_for_flip
@@ -53,10 +55,11 @@ class Piece
 		end
 	end
 
-	def die
+	def die(source = self)
+	  self.flipback
 		@space.piece = nil
 		@player.graveyard << self
-		run_effects(:die)
+		run_effects(:name => :die, :source => source)
 	end
 
 	#def space=(new_space)
@@ -98,6 +101,7 @@ class Piece
 			####### HANDLE BASIC MOVEMENT (i.e. movement to yellow squares) ############
 
 			yield move_to if block_given?	 # piece-specific stuff that happens during movement
+			# manage this with effects instead ^^^
 
 			# default movement
 			if move_to.piece == nil
@@ -106,6 +110,8 @@ class Piece
 				nil
 			else
 				#TRY TO CAPTURE AN OPPONENT'S PIECE
+				#IF MOVE IS SUCCESSFUL, TRY TO CAPTURE
+				#IF CAPTURE IS SUCCESSFUL, THE OPPONENT'S PIECE SHOULD BE SENT :die
 				true
 			end
 
@@ -121,6 +127,7 @@ class Piece
 	private
 
 	def simple_move(move_to)
+	  # Need to have Space run through effects for Space and Occupying piece, if applicable
 		@space.piece = nil
 		@space = move_to
 		@space.piece = self
@@ -183,9 +190,9 @@ class Piece
 end
 
 # -------------
-# = Black_Stone
+# = BlackStone
 # -------------
-class Black_Stone < Piece
+class BlackStone < Piece
 
 	def initialize(player, space)
 		super(player, space)
@@ -208,9 +215,9 @@ class Black_Stone < Piece
 end
 
 # ------------
-# = Red_Stone
+# = RedStone
 # ------------
-class Red_Stone < Piece
+class RedStone < Piece
 
 	def initialize(player, space)
 		super(player, space)
@@ -251,9 +258,9 @@ class Nav < Piece
 end
 
 # ------------
-# = Nav_Est
+# = NavEst
 # ------------
-class Nav_Est < Nav
+class NavEst < Nav
 
 	def initialize(player, space)
 		super(player, space)
@@ -264,9 +271,9 @@ class Nav_Est < Nav
 end
 
 # ------------
-# = Nav_Deb
+# = NavDeb
 # ------------
-class Nav_Deb < Nav
+class NavDeb < Nav
 
 	def initialize(player, space)
 		super(player, space)
@@ -277,9 +284,9 @@ class Nav_Deb < Nav
 end
 
 # ------------
-# = Nav_I
+# = NavI
 # ------------
-class Nav_I < Nav
+class NavI < Nav
 
 	def initialize(player, space)
 		super(player, space)
@@ -290,9 +297,9 @@ class Nav_I < Nav
 end
 
 # ------------
-# = Nav_Kr
+# = NavKr
 # ------------
-class Nav_Kr < Nav
+class NavKr < Nav
 
 	def initialize(player, space)
 		super(player, space)
@@ -303,9 +310,9 @@ class Nav_Kr < Nav
 end
 
 # ------------
-# = Nav_Cha
+# = NavCha
 # ------------
-class Nav_Cha < Nav
+class NavCha < Nav
 
 	def initialize(player, space)
 		super(player, space)
@@ -316,9 +323,9 @@ class Nav_Cha < Nav
 end
 
 # ------------
-# = Nav_Hil
+# = NavHil
 # ------------
-class Nav_Hil < Nav
+class NavHil < Nav
 
 	def initialize(player, space)
 		super(player, space)
@@ -329,9 +336,9 @@ class Nav_Hil < Nav
 end
 
 # ------------
-# = Nav_Per
+# = NavPer
 # ------------
-class Nav_Per < Nav
+class NavPer < Nav
 
 	def initialize(player, space)
 		super(player, space)

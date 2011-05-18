@@ -4,6 +4,14 @@ class Board
 	GRID_HEIGHT = 7
 	GRID_WIDTH = 7
 
+  def height
+    GRID_HEIGHT
+  end
+  
+  def width
+    GRID_WIDTH
+  end
+
 	def initialize(num_players)
 		@grid = Array.new(GRID_HEIGHT * GRID_WIDTH)
 		GRID_HEIGHT.downto(1) do |row|
@@ -12,7 +20,6 @@ class Board
 			end
 		end
 		@keeps = Array.new(num_players)
-
 	end
 
 	def [](col, row)
