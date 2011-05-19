@@ -50,4 +50,9 @@ class Game
 	def player1
 		player(1)
 	end
+	
+	# Convenience method
+	def move(c1, r1, c2, r2)
+	  self.board[c1, r1].piece.move(self.board[c2, r2])
+  end
 end

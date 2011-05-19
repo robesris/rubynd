@@ -88,7 +88,7 @@ class Piece
 		mg = @player.num == 0 ? @movement_grid : @movement_grid.reverse
 
     # First, check if any effects prevent the piece from moving there
-    return false unless move_to.can_be_entered_by?(self)
+    #return false unless move_to.can_be_entered_by?(self)
 
 		#calculate the number of columns and rows the space is from current position
 		col_move = move_to.col - @space.col # Left: <0  Right: >0
@@ -106,13 +106,13 @@ class Piece
 			# default movement
 			if move_to.piece == nil
 				simple_move(move_to)
-			elsif move_to.piece.player = @player
+			elsif move_to.piece.player == @player
 				nil
 			else
 				#TRY TO CAPTURE AN OPPONENT'S PIECE
 				#IF MOVE IS SUCCESSFUL, TRY TO CAPTURE
 				#IF CAPTURE IS SUCCESSFUL, THE OPPONENT'S PIECE SHOULD BE SENT :die
-				true
+				nil
 			end
 
 		else #if the piece can't jump to the specified space, see if it can 'slide' there
