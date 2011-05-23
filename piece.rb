@@ -26,6 +26,7 @@ class Piece
 	end
 
   def run_effects(action)
+    # Do I need these results?  Or should the respond_to_action method be sufficient?
     results = []
     effects.each do |e|
       results << e.respond_to_action(action)
@@ -55,11 +56,13 @@ class Piece
 		end
 	end
 
-	def die(source = self)
+	# Move this piece to the graveyard and trigger any effects that happen when the piece is captured
+	def die(params = {:source => self})
+	  self.space = nil
+	  self.space.piece = nil
 	  self.flipback
-		@space.piece = nil
-		@player.graveyard << self
-		run_effects(:name => :die, :source => source)
+		self.player.graveyard << self
+		run_effects(:name => :die, :source => params[:source])
 	end
 
 	#def space=(new_space)
@@ -76,19 +79,12 @@ class Piece
 	end
 =end
 
-	# = move(move_to)
-	#
-	# Handles piece movement.
-	# move_to: a Space object representing the space the piece is attempting to move to
-	#
-	def move(move_to)
-		#This is going to be the most complex method in the game
-
-		#Flip the movement grid around for player1 (i.e. second player)
+  # = can_reach?(space)
+  #
+  # Does the piece's movement grid allow it to move to the Space?
+  def can_reach?(space)
+    #Flip the movement grid around for player1 (i.e. second player)
 		mg = @player.num == 0 ? @movement_grid : @movement_grid.reverse
-
-    # First, check if any effects prevent the piece from moving there
-    #return false unless move_to.can_be_entered_by?(self)
 
 		#calculate the number of columns and rows the space is from current position
 		col_move = move_to.col - @space.col # Left: <0  Right: >0
@@ -99,28 +95,68 @@ class Piece
 			 row_move.abs <= MAX_ROW_MOVE &&
 			 mg[MOVEMENT_GRID_CENTER - (MOVEMENT_GRID_WIDTH * row_move) + col_move] != 0
 			####### HANDLE BASIC MOVEMENT (i.e. movement to yellow squares) ############
-
-			yield move_to if block_given?	 # piece-specific stuff that happens during movement
+			
+      #yield move_to if block_given?	 # piece-specific stuff that happens during movement
 			# manage this with effects instead ^^^
-
-			# default movement
-			if move_to.piece == nil
-				simple_move(move_to)
-			elsif move_to.piece.player == @player
-				nil
-			else
-				#TRY TO CAPTURE AN OPPONENT'S PIECE
-				#IF MOVE IS SUCCESSFUL, TRY TO CAPTURE
-				#IF CAPTURE IS SUCCESSFUL, THE OPPONENT'S PIECE SHOULD BE SENT :die
-				nil
-			end
-
 		else #if the piece can't jump to the specified space, see if it can 'slide' there
 			#HANDLE ADVANCED MOVEMENT
 			
 			# The piece's grid doesn't allow it to move there
-			nil
+			false
 		end
+	end
+	
+	def can_enter?(space)
+	  space.can_by_entered_by?(self)
+  end
+  
+  def can_capture?(piece)
+    piece.can_be_captured_by?(self)
+  end
+  
+  def can_be_captured_by?(piece)
+    # Test effects
+    self.effects.each do |effect|
+      return false unless effect.respond_to_action(:piece => piece, :action => :capture)
+    end
+    
+    # This piece can be captured
+    true
+  end
+  
+  def capture(opponent_piece)    
+    opponent_piece.die(:source => self)
+    run_effects(:name => :successful_capture)
+			
+	# = move(move_to)
+	#
+	# Handles piece movement.
+	# move_to: a Space object representing the space the piece is attempting to move to
+	#
+	def move(move_to)
+	  return false unless self.can_reach?(move_to) &&
+	                      self.can_enter?(move_to)
+	  
+	  # We are able to move (and capture)
+	  self.capture(move_to.piece) if move_to.piece
+	  # check for win here?
+	  self.enter(move_to)
+	  
+    #simple_move(move_to)
+
+			# default movement
+      # if move_to.piece == nil
+      #   simple_move(move_to)
+      # elsif move_to.piece.player == @player
+      #   nil
+      # else
+      #   #TRY TO CAPTURE AN OPPONENT'S PIECE
+      #   #IF MOVE IS SUCCESSFUL, TRY TO CAPTURE
+      #   #IF CAPTURE IS SUCCESSFUL, THE OPPONENT'S PIECE SHOULD BE SENT :die
+      #   nil
+      # end
+
+		
 
 	end
 
@@ -128,9 +164,9 @@ class Piece
 
 	def simple_move(move_to)
 	  # Need to have Space run through effects for Space and Occupying piece, if applicable
-		@space.piece = nil
-		@space = move_to
-		@space.piece = self
+		self.space.piece = nil
+		self.space = move_to
+		self.space.piece = self
 	end
 	
 	#Some common movement grids

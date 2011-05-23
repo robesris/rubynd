@@ -3,7 +3,7 @@ class Effect
                 :name         # The name of the effect
                 :behavior     # The name of the method invoked when this Effect is triggered
   
-  def initialize(options)
+  def initialize(options = {})
     @name = options[:name]
     @source = options[:source]
     @behavior = options[:behavior]
@@ -12,5 +12,7 @@ class Effect
   def respond_to_action(action)
     # Pass the params on to the source's method identified by :behavior
     self.source.send(:behavior, action)
-  end 
+  end
+  
+  alias :trigger :respond_to_action
 end
