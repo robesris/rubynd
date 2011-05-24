@@ -29,7 +29,7 @@ class Piece
 		player.pieces << self
 		@space = space
 		space.piece = self
-		@effects = {}
+		@effects = []
 		@attribs = {}
 		@game = game
 	end
@@ -62,7 +62,7 @@ class Piece
 	  self.space = nil
 	  self.flipback
 		self.player.graveyard << self
-		self.run_effects(:action => :die, :source => params[:source])
+		self.run_effects({:action => :die}.merge(params))
 	end
 
 	#def space=(new_space)
@@ -129,7 +129,7 @@ class Piece
   end
   
   def capture(opponent_piece)    
-    opponent_piece.die(:source => self)
+    opponent_piece.die(:player => :opponent)
     
     # Discarding the return value.  Any side effects should be handled by the effects themselves.
     self.run_effects(:action => :successful_capture)

@@ -17,7 +17,11 @@ class Tro < Piece
 	end
 
   def en_drop_behavior(action) #Add 10 to controlling player's pool when killed by opponent
-    if action[:name] == :die && @game.active_player == @player.opponent
+    puts "GOT HERE!!!!"
+    debugger
+    # Assuming for now this reward only happens on an actual capture
+    #if action[:action] == :die && @game.active_player == @player.opponent
+    if action[:action] == :die && action[:player] == :opponent
       @player.pool_add(10)
     end
   end

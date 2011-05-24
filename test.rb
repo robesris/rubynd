@@ -22,6 +22,9 @@ class Frontend
 	def self.tryit
 		@@g = Game.new
 		@@b = @@g.board
+		@@g.player1.pool = 25
+		tro = Tro.new(@@g.player1, b[4,4])
+		tro.flip
     # draw_board
     # @@p = BlackStone.new(@@g.player0, b[4,3])
     # @@g.pieces += [@@p]
@@ -36,6 +39,9 @@ class Frontend
 		move 2,3,2,4
 		move 2,4,2,5
 		move 2,5,2,6
+		
+		move 4,2,4,3
+		move 4,3,4,4  # capture Tro
 	end
 
 	def self.g

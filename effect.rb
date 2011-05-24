@@ -1,6 +1,6 @@
 class Effect
   attr_accessor :source,      # The object that created and 'owns' this Effect
-                :name         # The name of the effect
+                :name,         # The name of the effect
                 :behavior     # The name of the method invoked when this Effect is triggered
   
   def initialize(options = {})
@@ -11,7 +11,7 @@ class Effect
   
   def respond_to_action(action)
     # Pass the params on to the source's method identified by :behavior
-    self.source.send(:behavior, action)
+    self.source.send(self.behavior, action)
   end
   
   alias :trigger :respond_to_action
