@@ -2,7 +2,7 @@ class Player
 	KEEP_SIZE = 7
 	MAX_POOL = 60
 
-  attr_accessor :pieces
+  attr_accessor :pieces, :graveyard
 
 	def initialize(num)
 		@num = num

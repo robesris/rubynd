@@ -1,5 +1,14 @@
+# Possible actions:
+# attempt_enter
+# entered_by
+
+require 'affectable'
+
 class Space
-  attr_accessor :effects
+  attr_reader :attribs, :col, :row
+  attr_accessor :effects, :piece
+  
+  include Affectable
   
 	def initialize(col, row, attribs = {})
 		@col = col
@@ -9,36 +18,25 @@ class Space
 		@piece = nil
 	end
 
-	def piece
-		@piece
-	end
-
-	def piece=(new_piece)
-		@piece = new_piece
-	end
-
-	def attribs
-		@attribs
-	end
-
-	def col
-		@col
-	end
-
-	def row
-		@row
-	end
-
   def can_be_entered_by?(piece)
     # Test effects
-    self.effects.each do |effect|
-      return false unless effect.respond_to_action(:piece => piece, :action => :move)
-    end
+    result = self.run_effects(:action => :attempt_enter, :source => piece)
+    return false if result == false
     
     # If there's a piece here, see if the piece will allow us to move here
     return self.piece.can_be_captured_by?(piece) if self.piece
     
     # If there's no piece, we can move here
     true
-  end  
+  end
+  
+  def entered_by(piece)
+    self.piece = piece
+    
+    self.run_effects(:action => :entered_by, :source => piece)
+  end
+  
+  def exited_by(piece)
+    self.piece = nil
+  end
 end

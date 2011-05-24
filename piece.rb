@@ -1,9 +1,18 @@
+# Possible actions:
+# try_flip
+# die
+# attempt_capture
+# successful_capture
+# successful_move
+
 require 'effect'
+require 'affectable'
 
 class Piece
-	 
   attr_accessor :effects, :myeffect, :space, :attribs
   attr_reader :player, :name, :num, :game, :movement_grid, :cost
+  
+  include Affectable
   
 	MOVEMENT_GRID_WIDTH = 5
 	MOVEMENT_GRID_HEIGHT = 5
@@ -25,19 +34,10 @@ class Piece
 		@game = game
 	end
 
-  def run_effects(action)
-    # Do I need these results?  Or should the respond_to_action method be sufficient?
-    results = []
-    effects.each do |e|
-      results << e.respond_to_action(action)
-    end
-    results
-  end
-
 	def pay_for_flip
 		if attribs[:flipped] || attribs[:unflippable] || @player.pool < @cost
 			nil
-		elsif run_effects(:try_flip)
+		elsif run_effects(:action => :try_flip)
 			@player.pool -= @cost
 		end
 	end
@@ -58,11 +58,11 @@ class Piece
 
 	# Move this piece to the graveyard and trigger any effects that happen when the piece is captured
 	def die(params = {:source => self})
-	  self.space = nil
 	  self.space.piece = nil
+	  self.space = nil
 	  self.flipback
 		self.player.graveyard << self
-		run_effects(:name => :die, :source => params[:source])
+		self.run_effects(:action => :die, :source => params[:source])
 	end
 
 	#def space=(new_space)
@@ -82,22 +82,19 @@ class Piece
   # = can_reach?(space)
   #
   # Does the piece's movement grid allow it to move to the Space?
-  def can_reach?(space)
+  def can_reach?(to_space)
     #Flip the movement grid around for player1 (i.e. second player)
-		mg = @player.num == 0 ? @movement_grid : @movement_grid.reverse
+		mg = self.player.num == 0 ? self.movement_grid : self.movement_grid.reverse
 
 		#calculate the number of columns and rows the space is from current position
-		col_move = move_to.col - @space.col # Left: <0  Right: >0
-		row_move = move_to.row - @space.row # Up: >0  Down: <0
+		col_move = to_space.col - self.space.col # Left: <0  Right: >0
+		row_move = to_space.row - self.space.row # Up: >0  Down: <0
 
     #check if the piece's movement grid allows it to move DIRECTLY (i.e. 'jump') to the specified space 
 		if col_move.abs <= MAX_COL_MOVE &&
 			 row_move.abs <= MAX_ROW_MOVE &&
 			 mg[MOVEMENT_GRID_CENTER - (MOVEMENT_GRID_WIDTH * row_move) + col_move] != 0
-			####### HANDLE BASIC MOVEMENT (i.e. movement to yellow squares) ############
-			
-      #yield move_to if block_given?	 # piece-specific stuff that happens during movement
-			# manage this with effects instead ^^^
+		  return true
 		else #if the piece can't jump to the specified space, see if it can 'slide' there
 			#HANDLE ADVANCED MOVEMENT
 			
@@ -106,8 +103,16 @@ class Piece
 		end
 	end
 	
-	def can_enter?(space)
-	  space.can_by_entered_by?(self)
+	def can_enter?(to_space)
+	  to_space.can_be_entered_by?(self)
+  end
+  
+  def enter(to_space)
+    self.space.exited_by(self)
+    self.space = to_space
+    to_space.entered_by(self)
+
+    self.run_effects(:action => :successful_move)
   end
   
   def can_capture?(piece)
@@ -116,9 +121,8 @@ class Piece
   
   def can_be_captured_by?(piece)
     # Test effects
-    self.effects.each do |effect|
-      return false unless effect.respond_to_action(:piece => piece, :action => :capture)
-    end
+    result = run_effects(:piece => piece, :action => :attempt_capture)
+    return false if result == false
     
     # This piece can be captured
     true
@@ -126,7 +130,14 @@ class Piece
   
   def capture(opponent_piece)    
     opponent_piece.die(:source => self)
-    run_effects(:name => :successful_capture)
+    
+    # Discarding the return value.  Any side effects should be handled by the effects themselves.
+    self.run_effects(:action => :successful_capture)
+    
+    # Adding the value of the captured piece to the pool last for now.
+    # It's possible we may need to revisit this.
+    self.player.pool_add(opponent_piece.cost)
+  end
 			
 	# = move(move_to)
 	#
@@ -134,9 +145,13 @@ class Piece
 	# move_to: a Space object representing the space the piece is attempting to move to
 	#
 	def move(move_to)
-	  return false unless self.can_reach?(move_to) &&
-	                      self.can_enter?(move_to)
-	  
+	  unless self.can_reach?(move_to)
+  	  return {:result => false, :message => "#{self.name} at #{self.space.col}, #{self.space.row} cannot reach #{move_to.col}, #{move_to.row}"}
+	  end
+	  unless self.can_enter?(move_to)
+	    return {:result => false, :message => "#{self.name} at #{self.space.col}, #{self.space.row} not allowed to enter space at  #{move_to.col}, #{move_to.row}"}
+	  end
+
 	  # We are able to move (and capture)
 	  self.capture(move_to.piece) if move_to.piece
 	  # check for win here?
@@ -157,17 +172,17 @@ class Piece
       # end
 
 		
-
+    {:result => true, :message => "Move successful"}
 	end
 
 	private
 
-	def simple_move(move_to)
-	  # Need to have Space run through effects for Space and Occupying piece, if applicable
-		self.space.piece = nil
-		self.space = move_to
-		self.space.piece = self
-	end
+  # def simple_move(move_to)
+  #   # Need to have Space run through effects for Space and Occupying piece, if applicable
+  #   self.space.piece = nil
+  #   self.space = move_to
+  #   self.space.piece = self
+  # end
 	
 	#Some common movement grids
 	KING							= [ 0, 0, 0, 0, 0,
@@ -240,7 +255,9 @@ class BlackStone < Piece
 	end
 
 	def move(move_to)
-		if super(move_to) && @player.pool < Player::MAX_POOL
+	  result = super(move_to)
+	  return result if result[:result] == false
+		if @player.pool < Player::MAX_POOL
 			@player.pool += 1
 		end
 	end
@@ -265,7 +282,7 @@ class RedStone < Piece
 	end
 
 	def move(move_to)
-		if super(move_to) && @player.pool < Player::MAX_POOL
+		if super(move_to)[:result] && @player.pool < Player::MAX_POOL
 			@player.pool += 3
 		end
 	end

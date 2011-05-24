@@ -1,5 +1,8 @@
 require 'game.rb'
 
+require 'rubygems'
+require 'ruby-debug/debugger'
+
 class Frontend
 
 	def self.draw_board
@@ -29,6 +32,10 @@ class Frontend
     # draw_board
     # puts p.move(b[4,5])
 		draw_board
+		move(2,2,2,3)
+		move 2,3,2,4
+		move 2,4,2,5
+		move 2,5,2,6
 	end
 
 	def self.g
@@ -44,7 +51,7 @@ class Frontend
 	end
 	
 	def self.move(c1,r1,c2,r2)
-	  self.g.move(c1,r1,c2,r2)
+	  puts self.g.move(c1,r1,c2,r2)[:message]
 	  self.draw_board
   end
 end
